@@ -66,7 +66,8 @@ const Gameboard = function () {
       board[row][col] = marker;
       console.log(`Successful placement at ${row}, ${col}`);
       spotsTaken++;
-      checkWin(row, col, marker);
+      const won = checkWin(row, col, marker);
+      if (won) console.log(`${marker} wins!`);
     } else {
       console.log("Invalid placement");
     }
@@ -138,5 +139,10 @@ const Gameboard = function () {
 };
 
 const testGame = Gameboard();
+testGame.placeMarker(0, 0, "x");
+testGame.placeMarker(1, 0, "x");
+testGame.placeMarker(2, 0, "z");
+testGame.placeMarker(2, 1, "x");
+testGame.placeMarker(1, 1, "x");
 
 testGame.printBoard();
