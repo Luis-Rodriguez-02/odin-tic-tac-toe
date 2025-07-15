@@ -1,31 +1,3 @@
-/*
-- Tic Tac Toe, 3x3 board, can interact with the cells to fill them up with either a x or a o
-[][][]
-[][][]
-[][][]
-
- Things im stuck on:
- - how do i create the gameBoard
- - how to check diagonals from both sides, i.e [0][2],[1][1],[2][0] and [0][0],[1][1],[2][2]
- - how do we handle a draw logic
- - how to check rows and columns for win condition  
-
- IDEAS:
- functiion to print board to track
- function to check if move is valid -> both bounds and if cell is empty
- function to check if the player that moved won -> either all cells full or 3 in a row
- function for game loop ideally a iife until player has won or draw
-
-
-  Repeat the following steps until a winner is determined or the game ends in a draw:
-
-  Display the current state of the board.
-  Get the next move from the current player.
-  Validate the move.
-  Update the board with the move.
-  Check for a winner. 
-*/
-
 const Gameboard = function () {
   // Create a function to make a gameBoard and then populate the cells with empty strings.
 
@@ -142,6 +114,7 @@ const Gameboard = function () {
     checkWin,
     resetBoard,
     isFull,
+    getBoard,
   };
 };
 
@@ -197,15 +170,16 @@ function GameController(
       return;
     }
 
-    if (board.checkWin(row, col)) {
+    if (board.checkWin(row, col, activePlayer.token)) {
+      board.printBoard();
       console.log(`${activePlayer.name} wins!`);
       gameOver = true;
-      resetGame();
+      // resetGame(); // add btn
       return "win";
     } else if (board.isFull()) {
       console.log("It's a draw!");
       gameOver = true;
-      resetGame();
+      // resetGame(); // add btn
       return "draw";
     }
 
@@ -216,9 +190,37 @@ function GameController(
   return {
     playRound,
     printNewRound,
+    getActivePlayer,
+    resetGame,
+    getBoard: board.getBoard,
   };
 }
 
-const testGame = GameController("Luis", "Jack");
+const testGame = GameController();
 
+const boardElement = document.querySelector(".board");
+
+const renderBoard = () => {
+  boardElement.innerHTML = "";
+  const currentBoard = testGame.getBoard(); // ← expose getBoard in GameController
+  currentBoard.forEach((row, rowIndex) => {
+    row.forEach((cell, colIndex) => {
+      const cellDiv = document.createElement("div");
+      cellDiv.classList.add("cell");
+      cellDiv.dataset.row = rowIndex;
+      cellDiv.dataset.col = colIndex;
+      cellDiv.textContent = cell;
+      boardElement.appendChild(cellDiv);
+      console.log(currentBoard[rowIndex][colIndex]);
+    });
+  });
+  console.log(currentBoard);
+  console.log("Rendering....");
+};
 testGame.playRound(0, 1);
+testGame.playRound(0, 2);
+testGame.playRound(1, 2);
+testGame.playRound(1, 1);
+testGame.playRound(0, 0);
+testGame.playRound(2, 0);
+renderBoard();
