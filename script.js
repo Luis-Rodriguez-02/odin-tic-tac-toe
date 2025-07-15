@@ -47,6 +47,12 @@ const Gameboard = function () {
       console.log(board[i]);
     }
   };
+
+  const resetBoard = () => {
+    for (let i = 0; i < 3; i++) {
+      board[i] = ["", "", ""];
+    }
+  };
   // Method for UI to get the current state to render
   const getBoard = () => board;
   // Method to check if spot to place marker is valid
@@ -64,19 +70,10 @@ const Gameboard = function () {
     // We must check if the current spot is a valid spot.
     if (isValidSpot(row, col)) {
       board[row][col] = marker;
-      console.log(`Successful placement at ${row}, ${col}`);
       spotsTaken++;
-
-      const won = checkWin(row, col, marker);
-      let draw = isFull();
-
-      if (won) {
-        console.log(`${marker} wins!`);
-      } else if (draw) {
-        console.log("It's a draw!");
-      }
+      return true;
     } else {
-      console.log("Invalid placement");
+      return false;
     }
   };
 
@@ -142,18 +139,86 @@ const Gameboard = function () {
   return {
     placeMarker,
     printBoard,
+    checkWin,
+    resetBoard,
+    isFull,
   };
 };
 
-const testGame = Gameboard();
-testGame.placeMarker(0, 0, "x");
-testGame.placeMarker(1, 1, "x");
-testGame.placeMarker(2, 2, "z");
-testGame.placeMarker(0, 2, "x");
-testGame.placeMarker(0, 1, "z");
-testGame.placeMarker(1, 0, "x");
-testGame.placeMarker(1, 2, "z");
-testGame.placeMarker(2, 0, "z");
-testGame.placeMarker(2, 1, "x");
+function GameController(
+  playerOneName = "Player One",
+  playerTwoName = "Player Two"
+) {
+  const board = Gameboard();
+  let gameOver = false;
 
-testGame.printBoard();
+  const players = [
+    {
+      name: playerOneName,
+      token: "X",
+    },
+    {
+      name: playerTwoName,
+      token: "O",
+    },
+  ];
+
+  let activePlayer = players[0];
+
+  const switchPlayerTurn = () => {
+    activePlayer = activePlayer === players[0] ? players[1] : players[0];
+  };
+
+  const getActivePlayer = () => activePlayer;
+
+  const printNewRound = () => {
+    board.printBoard();
+    console.log(`${getActivePlayer().name}'s turn.`);
+  };
+
+  const resetGame = () => {
+    board.resetBoard(); // Gameboard handles board
+    activePlayer = players[0]; // GameController handles flow
+    gameOver = false;
+    console.log("Game has been reset!");
+    printNewRound();
+  };
+
+  const playRound = (row, col) => {
+    if (gameOver) return;
+
+    // if (!board.isValidSpot(row, col)) {
+    //   console.log("Invalid move.");
+    //   return;
+    // }
+
+    if (!board.placeMarker(row, col, activePlayer.token)) {
+      console.log("Invalid move.");
+      return;
+    }
+
+    if (board.checkWin(row, col)) {
+      console.log(`${activePlayer.name} wins!`);
+      gameOver = true;
+      resetGame();
+      return "win";
+    } else if (board.isFull()) {
+      console.log("It's a draw!");
+      gameOver = true;
+      resetGame();
+      return "draw";
+    }
+
+    printNewRound();
+    switchPlayerTurn();
+  };
+
+  return {
+    playRound,
+    printNewRound,
+  };
+}
+
+const testGame = GameController("Luis", "Jack");
+
+testGame.playRound(0, 1);
