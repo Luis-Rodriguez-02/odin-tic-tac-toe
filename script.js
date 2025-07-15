@@ -22,7 +22,10 @@ const Gameboard = function () {
 
   const resetBoard = () => {
     for (let i = 0; i < 3; i++) {
-      board[i] = ["", "", ""];
+      for (let j = 0; j < 3; j++) {
+        board[i][j] = "";
+      }
+      spotsTaken = 0;
     }
   };
   // Method for UI to get the current state to render
@@ -146,15 +149,15 @@ function GameController(
 
   const printNewRound = () => {
     board.printBoard();
-    console.log(`${getActivePlayer().name}'s turn.`);
+    return `${getActivePlayer().name}'s turn.`;
   };
 
   const resetGame = () => {
     board.resetBoard(); // Gameboard handles board
     activePlayer = players[0]; // GameController handles flow
     gameOver = false;
-    console.log("Game has been reset!");
     printNewRound();
+    return "Game has been reset!";
   };
 
   const playRound = (row, col) => {
@@ -166,21 +169,16 @@ function GameController(
     // }
 
     if (!board.placeMarker(row, col, activePlayer.token)) {
-      console.log("Invalid move.");
-      return;
+      return "Select empty cell";
     }
 
     if (board.checkWin(row, col, activePlayer.token)) {
       board.printBoard();
-      console.log(`${activePlayer.name} wins!`);
       gameOver = true;
-      // resetGame(); // add btn
-      return "win";
+      return `${activePlayer.name} wins!`;
     } else if (board.isFull()) {
-      console.log("It's a draw!");
       gameOver = true;
-      // resetGame(); // add btn
-      return "draw";
+      return "It's a draw!";
     }
 
     printNewRound();
@@ -195,32 +193,43 @@ function GameController(
     getBoard: board.getBoard,
   };
 }
+function playGame() {
+  const testGame = GameController();
+  const boardElement = document.querySelector(".board");
+  const resetBtn = document.querySelector(".restart");
+  const message = document.querySelector(".message");
+  const renderBoard = () => {
+    boardElement.innerHTML = "";
+    const currentBoard = testGame.getBoard(); // ← expose getBoard in GameController
 
-const testGame = GameController();
+    const currentPlayerClick = (e) => {
+      const row = e.target.dataset.row;
+      const column = e.target.dataset.col;
+      message.textContent =
+        testGame.playRound(row, column) || testGame.printNewRound();
 
-const boardElement = document.querySelector(".board");
+      renderBoard();
+    };
 
-const renderBoard = () => {
-  boardElement.innerHTML = "";
-  const currentBoard = testGame.getBoard(); // ← expose getBoard in GameController
-  currentBoard.forEach((row, rowIndex) => {
-    row.forEach((cell, colIndex) => {
-      const cellDiv = document.createElement("div");
-      cellDiv.classList.add("cell");
-      cellDiv.dataset.row = rowIndex;
-      cellDiv.dataset.col = colIndex;
-      cellDiv.textContent = cell;
-      boardElement.appendChild(cellDiv);
-      console.log(currentBoard[rowIndex][colIndex]);
+    currentBoard.forEach((row, rowIndex) => {
+      row.forEach((cell, colIndex) => {
+        const cellDiv = document.createElement("div");
+        cellDiv.addEventListener("click", currentPlayerClick);
+        cellDiv.classList.add("cell");
+        cellDiv.dataset.row = rowIndex;
+        cellDiv.dataset.col = colIndex;
+        cellDiv.textContent = cell;
+        boardElement.appendChild(cellDiv);
+      });
     });
+  };
+
+  resetBtn.addEventListener("click", () => {
+    message.textContent = testGame.resetGame();
+    renderBoard();
   });
-  console.log(currentBoard);
-  console.log("Rendering....");
-};
-testGame.playRound(0, 1);
-testGame.playRound(0, 2);
-testGame.playRound(1, 2);
-testGame.playRound(1, 1);
-testGame.playRound(0, 0);
-testGame.playRound(2, 0);
-renderBoard();
+
+  document.addEventListener("DOMContentLoaded", () => renderBoard());
+}
+
+playGame();
