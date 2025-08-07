@@ -7,4 +7,4 @@ Learned:
 - Create modular game logic and separation of concerns
 
 
-Live Preview:
+Live Preview: https://luro-dev.github.io/odin-tic-tac-toe/
